@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "req_test_001",
+  "game": {
+    "gameId": "game_123",
+    "tableId": "table_42",
+    "boardId": "board_4",
+    "format": "DUPLICATE",
+    "scoring": "IMP",
+    "dealer": "W",
+    "vulnerability": "NONE"
+  },
+  "actor": {
+    "agentInstanceId": "game_123:table_42:board_4:E",
+    "playerId": "bot_east",
+    "seat": "E",
+    "partnership": "EW"
+  },
+  "decision": {
+    "type": "BID_REQUEST",
+    "turnSeat": "E",
+    "actingSeat": "E",
+    "timeBudgetMs": 3000,
+    "legalActions": [
+      { "type": "BID", "call": "PASS" },
+      { "type": "BID", "call": "1S" },
+      { "type": "BID", "call": "1NT" }
+    ]
+  },
+  "state": {
+    "private": {
+      "hand": [
+        "SA","S8","S4",
+        "HK","HJ","H5",
+        "DA","DQ","D7",
+        "C10","C9","C4","C3"
+      ]
+    },
+    "public": {
+      "auction": [
+        { "seat": "W", "call": "PASS" },
+        { "seat": "N", "call": "1D" },
+        { "seat": "E", "call": "PASS" }
+      ],
+      "contract": null,
+      "dummy": null,
+      "currentTrick": [],
+      "completedTricks": [],
+      "tricksWon": {
+        "NS": 0,
+        "EW": 0
+      }
+    }
+  }
+}

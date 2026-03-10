@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "1.0",
+  "requestId": "req_play_001",
+  "timestamp": "2026-03-10T19:00:00Z",
+  "game": {
+    "gameId": "game_123",
+    "tableId": "table_42",
+    "boardId": "board_4",
+    "format": "DUPLICATE",
+    "scoring": "IMP",
+    "dealer": "W",
+    "vulnerability": "NONE"
+  },
+  "actor": {
+    "agentInstanceId": "game_123:table_42:board_4:E",
+    "playerId": "bot_east",
+    "seat": "E",
+    "partnership": "EW"
+  },
+  "decision": {
+    "type": "PLAY_REQUEST",
+    "turnSeat": "E",
+    "actingSeat": "E",
+    "timeBudgetMs": 3000,
+    "legalActions": [
+      {
+        "type": "PLAY",
+        "card": "H9"
+      },
+      {
+        "type": "PLAY",
+        "card": "H3"
+      }
+    ]
+  },
+  "state": {
+    "private": {
+      "hand": [
+        "H9",
+        "H3",
+        "S10",
+        "S7",
+        "D8",
+        "D4",
+        "D2",
+        "CK",
+        "CJ",
+        "C9"
+      ]
+    },
+    "public": {
+      "auction": [
+        { "seat": "W", "call": "PASS" },
+        { "seat": "N", "call": "1H" },
+        { "seat": "E", "call": "PASS" },
+        { "seat": "S", "call": "2H" },
+        { "seat": "W", "call": "PASS" },
+        { "seat": "N", "call": "4H" },
+        { "seat": "E", "call": "PASS" },
+        { "seat": "S", "call": "PASS" },
+        { "seat": "W", "call": "PASS" }
+      ],
+      "contract": {
+        "level": 4,
+        "strain": "H",
+        "declarer": "S",
+        "doubled": false,
+        "redoubled": false
+      },
+      "dummy": {
+        "seat": "N",
+        "cards": [
+          "SA",
+          "SQ",
+          "S3",
+          "HK",
+          "H7",
+          "H2",
+          "DA",
+          "D10",
+          "D6",
+          "CQ",
+          "C8",
+          "C5"
+        ]
+      },
+      "currentTrick": [
+        {
+          "seat": "S",
+          "card": "HA"
+        },
+        {
+          "seat": "W",
+          "card": "H4"
+        }
+      ],
+      "completedTricks": [
+        {
+          "trickNumber": 1,
+          "leader": "W",
+          "cards": [
+            { "seat": "W", "card": "SK" },
+            { "seat": "N", "card": "SA" },
+            { "seat": "E", "card": "S7" },
+            { "seat": "S", "card": "S2" }
+          ],
+          "winner": "N"
+        },
+        {
+          "trickNumber": 2,
+          "leader": "N",
+          "cards": [
+            { "seat": "N", "card": "D10" },
+            { "seat": "E", "card": "D2" },
+            { "seat": "S", "card": "DK" },
+            { "seat": "W", "card": "D3" }
+          ],
+          "winner": "S"
+        }
+      ],
+      "tricksWon": {
+        "NS": 2,
+        "EW": 0
+      }
+    }
+  },
+  "botProfile": {
+    "botType": "NATURAL_V1",
+    "serviceVersion": "1.0.0"
+  },
+  "options": {
+    "includeExplanation": true
+  }
+}
