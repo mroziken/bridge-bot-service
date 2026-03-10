@@ -2,7 +2,8 @@ name: Deploy Bridge Bot to Cloud Run
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -14,6 +15,7 @@ env:
   REPO_NAME: ${{ vars.ARTIFACT_REGISTRY_REPO }}
   SERVICE_NAME: ${{ vars.CLOUD_RUN_SERVICE }}
   IMAGE_NAME: bridge-bot-service
+  RUNTIME_SERVICE_ACCOUNT: bridge-bot-runtime@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
 
 jobs:
   deploy:
@@ -33,15 +35,18 @@ jobs:
         uses: google-github-actions/setup-gcloud@v3
 
       - name: Configure Docker for Artifact Registry
-        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+        run: gcloud auth configure-docker "${{ env.REGION }}-docker.pkg.dev" --quiet
 
       - name: Build image
         run: |
-          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+          docker build \
+            -t "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" \
+            .
 
       - name: Push image
         run: |
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push \
+            "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
 
       - name: Deploy to Cloud Run
         id: deploy
@@ -50,11 +55,11 @@ jobs:
           service: ${{ env.SERVICE_NAME }}
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          flags: >-
-            --allow-unauthenticated
-            --service-account=bridge-bot-runtime@${{ env.PROJECT_ID }}.iam.gserviceaccount.com
-            --set-env-vars=ADK_MODEL=gemini-2.5-flash
-            --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest
+          flags: --allow-unauthenticated --service-account=${{ env.RUNTIME_SERVICE_ACCOUNT }}
+          env_vars: |
+            ADK_MODEL=gemini-2.5-flash
+          secrets: |
+            GOOGLE_API_KEY=GOOGLE_API_KEY:latest
 
       - name: Show URL
-        run: echo "Service URL: ${{ steps.deploy.outputs.url }}"
+        run: 'echo "Service URL: ${{ steps.deploy.outputs.url }}"'
