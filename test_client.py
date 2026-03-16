@@ -3,6 +3,7 @@ import json
 import time
 import sys
 from pathlib import Path
+from urllib.parse import urlparse, urlunparse
 
 import requests
 
@@ -18,11 +19,37 @@ def load_request(path: Path) -> dict:
         return json.load(f)
 
 
+def normalize_url(url: str) -> str:
+    parsed = urlparse(url)
+
+    if not parsed.scheme or not parsed.netloc:
+        raise ValueError(
+            "URL must include scheme and host, for example "
+            "'http://localhost:8080/bot/decision'."
+        )
+
+    hostname = parsed.hostname
+    if hostname == "0.0.0.0":
+        replacement = "127.0.0.1"
+        port = f":{parsed.port}" if parsed.port else ""
+        netloc = replacement + port
+        parsed = parsed._replace(netloc=netloc)
+
+    if parsed.scheme == "https" and parsed.hostname in {"127.0.0.1", "localhost"}:
+        raise ValueError(
+            "Local dev server URLs should usually use http, not https. "
+            f"Try '{urlunparse(parsed._replace(scheme='http'))}'."
+        )
+
+    return urlunparse(parsed)
+
+
 def send_request(url: str, payload: dict) -> dict:
     headers = {
         "Content-Type": "application/json"
     }
 
+    url = normalize_url(url)
     start = time.perf_counter()
 
     response = requests.post(
@@ -101,7 +128,11 @@ def main():
 
     print("\nSending request...")
 
-    response = send_request(args.url, request_payload)
+    try:
+        response = send_request(args.url, request_payload)
+    except ValueError as exc:
+        print(f"\nInvalid URL: {exc}")
+        sys.exit(1)
 
     print("\nResponse:")
     print(json.dumps(response, indent=2))
