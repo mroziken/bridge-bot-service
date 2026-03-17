@@ -1,7 +1,9 @@
+import logging
 import json
 from typing import Any, Dict, List, Optional
 
 from .enums import ActionType, DecisionRequestType
+from .logging_config import get_logger, payload_logging_enabled, truncate_for_log
 from .schemas import (
     BidAction,
     BridgeDecisionRequest,
@@ -9,6 +11,8 @@ from .schemas import (
     LegalAction,
     PlayAction,
 )
+
+logger = get_logger(__name__)
 
 
 def legal_action_to_dict(action: LegalAction) -> Dict[str, Any]:
@@ -96,7 +100,7 @@ def build_agent_prompt(req: BridgeDecisionRequest) -> str:
         },
     }
 
-    return f"""
+    prompt = f"""
 You are a contract bridge decision engine.
 
 Your job:
@@ -126,6 +130,24 @@ RESPONSE JSON SHAPE:
 Return one object only.
 """.strip()
 
+    logger.debug(
+        "Built agent prompt",
+        extra={
+            "request_id": req.requestId,
+            "phase": phase_hint,
+            "legal_action_count": len(legal_actions),
+            "prompt_length": len(prompt),
+        },
+    )
+    if payload_logging_enabled():
+        logger.debug(
+            "Prompt payload details: %s",
+            truncate_for_log(prompt_payload, limit=2000),
+            extra={"request_id": req.requestId},
+        )
+
+    return prompt
+
 
 def extract_final_text(event: Any) -> Optional[str]:
     try:
@@ -140,16 +162,57 @@ def extract_final_text(event: Any) -> Optional[str]:
                 if texts:
                     return "".join(texts).strip()
     except Exception:
+        logger.exception("Failed to extract final text from agent event")
         return None
     return None
 
 
-def parse_model_json(text: str) -> Dict[str, Any]:
+def log_agent_event_debug(event: Any, request_id: str = "-") -> None:
+    if not logger.isEnabledFor(logging.DEBUG):
+        return
+
+    try:
+        if hasattr(event, "get_function_calls"):
+            for function_call in event.get_function_calls():
+                logger.debug(
+                    "Agent called tool '%s' with args=%s",
+                    function_call.name,
+                    truncate_for_log(function_call.args or {}, limit=1000),
+                    extra={"request_id": request_id},
+                )
+
+        if hasattr(event, "get_function_responses"):
+            for function_response in event.get_function_responses():
+                logger.debug(
+                    "Tool '%s' returned %s",
+                    function_response.name,
+                    truncate_for_log(function_response.response or {}, limit=1000),
+                    extra={"request_id": request_id},
+                )
+    except Exception:
+        logger.exception(
+            "Failed to log agent tool event",
+            extra={"request_id": request_id},
+        )
+
+
+def parse_model_json(text: str, request_id: str = "-") -> Dict[str, Any]:
+    logger.debug(
+        "Parsing model JSON response",
+        extra={"request_id": request_id},
+    )
     text = text.strip()
 
     if text.startswith("```"):
         text = text.strip("`")
         if text.startswith("json"):
             text = text[4:].strip()
+
+    if payload_logging_enabled():
+        logger.debug(
+            "Raw model text: %s",
+            truncate_for_log(text),
+            extra={"request_id": request_id},
+        )
 
     return json.loads(text)
